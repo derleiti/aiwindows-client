@@ -1,0 +1,138 @@
+name: Build AIWindows Client
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.0.0)'
+        required: false
+        default: ''
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: 'pip'
+    
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+    
+    - name: Extract Version
+      id: version
+      shell: bash
+      run: |
+        if [ -n "${{ github.event.inputs.version }}" ]; then
+          VERSION="${{ github.event.inputs.version }}"
+        else
+          VERSION=$(grep -E "^VERSION" aiwindows_client/version.py | cut -d'"' -f2)
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Building version: $VERSION"
+    
+    - name: Create Icon (ICO)
+      run: |
+        python -c "
+        from PIL import Image
+        img = Image.open('icon.jpg')
+        img.save('icon.ico', format='ICO', sizes=[(256,256), (128,128), (64,64), (48,48), (32,32), (16,16)])
+        print('Icon created: icon.ico')
+        "
+    
+    - name: Build Windows Executable
+      run: |
+        pyinstaller `
+          --name="AIWindows-Client" `
+          --onefile `
+          --windowed `
+          --icon="icon.ico" `
+          --add-data="aiwindows_client/ui;aiwindows_client/ui" `
+          --add-data="aiwindows_client/core;aiwindows_client/core" `
+          --add-data="aiwindows_client/translations;aiwindows_client/translations" `
+          --add-data="aiwindows_client/assets;aiwindows_client/assets" `
+          --add-data="icon.jpg;." `
+          --hidden-import=PyQt6 `
+          --hidden-import=PyQt6.QtWidgets `
+          --hidden-import=PyQt6.QtCore `
+          --hidden-import=PyQt6.QtGui `
+          --hidden-import=PyQt6.QtWebEngineWidgets `
+          --hidden-import=httpx `
+          --hidden-import=websockets `
+          --hidden-import=keyring `
+          --hidden-import=cryptography `
+          --hidden-import=PIL `
+          --hidden-import=winpty `
+          --hidden-import=pyte `
+          --clean `
+          --noconfirm `
+          aiwindows_client/main.py
+    
+    - name: Rename Executable
+      shell: bash
+      run: |
+        VERSION="${{ steps.version.outputs.version }}"
+        mv dist/AIWindows-Client.exe "dist/AIWindows-Client-${VERSION}.exe"
+        cp "dist/AIWindows-Client-${VERSION}.exe" dist/AIWindows-Client-latest.exe
+        ls -la dist/
+    
+    - name: Calculate Checksum
+      id: checksum
+      shell: bash
+      run: |
+        VERSION="${{ steps.version.outputs.version }}"
+        CHECKSUM=$(sha256sum "dist/AIWindows-Client-${VERSION}.exe" | cut -d' ' -f1)
+        echo "checksum=$CHECKSUM" >> $GITHUB_OUTPUT
+        echo "$CHECKSUM" > dist/CHECKSUM.txt
+        echo "Checksum: $CHECKSUM"
+    
+    - name: Create Version Info
+      shell: bash
+      run: |
+        VERSION="${{ steps.version.outputs.version }}"
+        BUILD_DATE=$(date +%Y%m%d_%H%M%S)
+        CHECKSUM="${{ steps.checksum.outputs.checksum }}"
+        
+        cat > dist/version.json << EOF
+        {
+          "version": "$VERSION",
+          "build_date": "$BUILD_DATE",
+          "checksum": "$CHECKSUM",
+          "platform": "windows",
+          "download_url": "https://repo.ailinux.me/windows/AIWindows-Client-latest.exe",
+          "filename": "AIWindows-Client-${VERSION}.exe"
+        }
+        EOF
+    
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: AIWindows-Client-${{ steps.version.outputs.version }}
+        path: |
+          dist/AIWindows-Client-*.exe
+          dist/version.json
+          dist/CHECKSUM.txt
+    
+    - name: Deploy to Server
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+      env:
+        DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        SERVER_HOST: ${{ secrets.SERVER_HOST }}
+      run: |
+        # Upload via SCP (needs SSH key in secrets)
+        echo "Deployment to repo.ailinux.me/windows/ would happen here"
+        # scp -i $DEPLOY_KEY dist/*.exe user@$SERVER_HOST:/path/to/windows/
