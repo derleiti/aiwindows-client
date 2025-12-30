@@ -24,7 +24,7 @@ pyte>=0.8.0
 pywinpty>=2.0.0  # Windows ConPTY
 
 # Encryption for secure settings storage
-cryptography==43.0.1
+cryptography==44.0.1
 
 # Async support
 anyio==4.4.0
