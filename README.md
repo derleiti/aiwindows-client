@@ -46,3 +46,13 @@ Benötigt Zugang zum AILinux/TriForce Backend:
 ## Author
 
 Markus Leitermann — [@derleiti](https://github.com/derleiti) — Warzenried, Oberpfalz
+
+## License
+
+**This project is licensed under the GNU General Public License v3.0 (GPL-3.0).**
+
+You are free to use, modify, and redistribute this software. If you distribute
+modified versions, you must release your changes under the same GPL-3.0 license.
+
+Copyright (c) 2026 Markus Leitermann / AILinuX <support@ailinux.me>
+See [LICENSE](./LICENSE) for the full text.
