@@ -9,6 +9,7 @@ Desktop-ready client with:
 - Terminal with tabs
 """
 from PyQt6.QtWidgets import (
+    QLineEdit,
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QToolBar, QPushButton, QLabel, QStatusBar,
     QSplitter, QTabWidget, QMenuBar, QMenu,
