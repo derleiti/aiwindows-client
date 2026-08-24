@@ -30,7 +30,7 @@ cryptography==44.0.1
 anyio==4.4.0
 
 # Image processing (for icons)
-pillow==10.3.0
+pillow==12.3.0
 
 h11==0.16.0
 urllib3==2.6.0
