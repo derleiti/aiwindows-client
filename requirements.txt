@@ -20,7 +20,7 @@ websockets>=17.0.1
 pydantic==2.13.4
 
 # Terminal emulation
-pyte>=0.8.0
+pyte>=0.8.2
 pywinpty>=2.0.0  # Windows ConPTY
 
 # Encryption for secure settings storage
