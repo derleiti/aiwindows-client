@@ -88,13 +88,6 @@ def setup_hardware_acceleration():
 # Run hardware setup BEFORE importing Qt
 _hw_hints = setup_hardware_acceleration()
 
-from PyQt6.QtWidgets import QApplication
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QSurfaceFormat
-
-# IMPORTANT: Import WebEngine BEFORE QApplication is created
-from PyQt6.QtWebEngineWidgets import QWebEngineView  # noqa: F401
-
 
 def parse_args():
     """Parse command line arguments"""
@@ -149,32 +142,34 @@ def parse_args():
 
 
 def manage_autostart(enable: bool) -> bool:
-    """Enable or disable systemd autostart service."""
-    import subprocess
+    """Enable or disable per-user Windows autostart."""
+    import winreg
     try:
-        action = "enable" if enable else "disable"
-        result = subprocess.run(
-            ["systemctl", "--user", action, "ailinux-client"],
-            capture_output=True,
-            text=True
-        )
-        return result.returncode == 0
+        key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_SET_VALUE) as key:
+            if enable:
+                executable = str(Path(sys.executable).resolve())
+                winreg.SetValueEx(key, "AILinuxClient", 0, winreg.REG_SZ, f'"{executable}"')
+            else:
+                try:
+                    winreg.DeleteValue(key, "AILinuxClient")
+                except FileNotFoundError:
+                    pass
+        return True
     except Exception as e:
-        logger.error(f"Failed to {action} autostart: {e}")
+        logger.error("Failed to change Windows autostart: %s", e)
         return False
 
 
 def is_autostart_enabled() -> bool:
-    """Check if autostart is enabled."""
-    import subprocess
+    """Return whether the per-user Windows Run entry exists."""
+    import winreg
     try:
-        result = subprocess.run(
-            ["systemctl", "--user", "is-enabled", "ailinux-client"],
-            capture_output=True,
-            text=True
-        )
-        return result.stdout.strip() == "enabled"
-    except Exception:
+        key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path) as key:
+            winreg.QueryValueEx(key, "AILinuxClient")
+        return True
+    except OSError:
         return False
 
 
@@ -208,6 +203,13 @@ def main():
         else:
             print("✗ Failed to disable autostart")
             return 1
+
+    # Import Qt only for GUI mode. This keeps CLI diagnostics usable on
+    # headless Windows runners and systems with broken WebEngine/GPU setup.
+    from PyQt6.QtWidgets import QApplication
+    from PyQt6.QtCore import Qt
+    from PyQt6.QtGui import QSurfaceFormat
+    from PyQt6.QtWebEngineWidgets import QWebEngineView  # noqa: F401
 
     # Force software rendering if requested
     if args.software_render:
