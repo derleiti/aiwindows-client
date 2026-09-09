@@ -1,0 +1,145 @@
+name: Build TriForce Release Matrix
+
+on:
+  workflow_dispatch:
+    inputs:
+      triforce_ref:
+        description: 'TriForce commit/tag/branch to build'
+        required: true
+        default: 'e8f61e5e91a9f7b0516a94104b26d9a38813f3a8'
+      windows_version:
+        description: 'Windows client artifact version'
+        required: true
+        default: '1.0.0-beta1'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout TriForce
+        uses: actions/checkout@v7
+        with:
+          repository: derleiti/triforce-dev-mcp
+          ref: ${{ inputs.triforce_ref }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+          cache: pip
+      - name: Install locked runtime
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-lock-2.85-beta1.txt
+          pip check
+      - name: Full TriForce suite
+        env:
+          PYTHONPATH: .
+        run: python -m pytest -q
+      - name: Packaging integrity
+        run: git diff --check
+
+  linux:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout TriForce
+        uses: actions/checkout@v7
+        with:
+          repository: derleiti/triforce-dev-mcp
+          ref: ${{ inputs.triforce_ref }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+          cache: pip
+      - name: Native build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y patchelf gcc g++
+      - name: Build backend runtime and compiled Control Center
+        env:
+          PYTHON_BIN: python3.14
+          BACKEND_RUNTIME: ${{ runner.temp }}/triforce-runtime
+          GUI_VENV: ${{ runner.temp }}/triforce-gui-venv
+          GUI_OUT: ${{ runner.temp }}/triforce-nuitka
+        run: scripts/release/prepare-triforce-2.85-ci-build.sh
+      - name: Build Debian packages
+        env:
+          BACKEND_RUNTIME: ${{ runner.temp }}/triforce-runtime
+          GUI_BUNDLE: ${{ runner.temp }}/triforce-nuitka/main.dist
+          OUT_DIR: ${{ runner.temp }}/triforce-linux
+        run: scripts/release/build-triforce-2.85-beta1.sh
+      - name: Debian smoke
+        run: |
+          set -eu
+          cd '${{ runner.temp }}/triforce-linux'
+          sha256sum -c SHA256SUMS
+          tmp=$(mktemp -d)
+          dpkg-deb -x triforce-backend_2.85.0~beta1_amd64.deb "$tmp"
+          test "$(readlink "$tmp/opt/triforce/runtime/bin/python3.14")" = /usr/bin/python3.14
+          PYTHONPATH="$tmp/opt/triforce" "$tmp/opt/triforce/runtime/bin/python" - <<'PY'
+          from app.config import VERSION
+          from google import genai
+          print('DEBIAN_ACTIONS_SMOKE_OK', VERSION, getattr(genai, '__version__', 'unknown'))
+          PY
+          rm -rf "$tmp"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: triforce-debian-2.85-beta1
+          if-no-files-found: error
+          path: ${{ runner.temp }}/triforce-linux/*
+
+  arch:
+    needs: linux
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Install Arch build prerequisites
+        run: pacman -Syu --noconfirm base-devel python systemd zlib expat libarchive git sudo
+      - name: Require Python 3.14 ABI
+        run: python -c "import sys; assert sys.version_info[:2] == (3,14), sys.version"
+      - name: Checkout TriForce
+        uses: actions/checkout@v7
+        with:
+          repository: derleiti/triforce-dev-mcp
+          ref: ${{ inputs.triforce_ref }}
+      - uses: actions/download-artifact@v7
+        with:
+          name: triforce-debian-2.85-beta1
+          path: /tmp/debian
+      - name: Build Arch package
+        run: |
+          set -eu
+          mkdir -p /tmp/arch-build
+          cp /tmp/debian/triforce-backend_2.85.0~beta1_amd64.deb /tmp/arch-build/
+          cp packaging/arch/triforce.install /tmp/arch-build/
+          SHA=$(sha256sum /tmp/arch-build/triforce-backend_2.85.0~beta1_amd64.deb | awk '{print $1}')
+          sed -e 's#source=(.*#source=("triforce-backend_2.85.0~beta1_amd64.deb")#' \
+              -e "s#sha256sums=.*#sha256sums=('${SHA}')#" \
+              packaging/arch/PKGBUILD.in > /tmp/arch-build/PKGBUILD
+          useradd -m builder
+          chown -R builder:builder /tmp/arch-build
+          cd /tmp/arch-build
+          sudo -u builder makepkg --noconfirm --cleanbuild
+          pacman -U --noconfirm ./triforce-bin-*.pkg.tar.zst
+          test "$(readlink /opt/triforce/runtime/bin/python3.14)" = /usr/bin/python
+          PYTHONPATH=/opt/triforce /opt/triforce/runtime/bin/python - <<'PY'
+          from app.config import VERSION
+          from google import genai
+          print('ARCH_ACTIONS_SMOKE_OK', VERSION, getattr(genai, '__version__', 'unknown'))
+          PY
+          mkdir -p /tmp/arch-artifacts
+          cp ./triforce-bin-*.pkg.tar.zst /tmp/arch-artifacts/
+          cp ./PKGBUILD ./triforce.install /tmp/arch-artifacts/
+          (cd /tmp/arch-artifacts && sha256sum *.pkg.tar.zst > SHA256SUMS-arch.txt)
+      - uses: actions/upload-artifact@v7
+        with:
+          name: triforce-arch-2.85-beta1
+          if-no-files-found: error
+          path: /tmp/arch-artifacts/*
+
+  windows:
+    uses: ./.github/workflows/build-windows.yml
+    with:
+      version: ${{ inputs.windows_version }}
