@@ -6,7 +6,7 @@ on:
       triforce_ref:
         description: 'TriForce commit/tag/branch to build'
         required: true
-        default: 'e8f61e5e91a9f7b0516a94104b26d9a38813f3a8'
+        default: '5a2ffbf2e996038bbe869d07568dd508d50ebf90'
       windows_version:
         description: 'Windows client artifact version'
         required: true
@@ -35,9 +35,6 @@ jobs:
           pip check
       - name: Prepare TriStar runtime directory
         run: sudo install -d -o "$USER" -g "$(id -gn)" -m 0755 /var/tristar
-      - name: Prepare TriStar state directory
-        run: |
-          sudo install -d -o "$USER" -g "$(id -gn)" -m 0755 /var/tristar
       - name: Full TriForce suite
         env:
           PYTHONPATH: .
