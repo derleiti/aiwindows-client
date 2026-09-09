@@ -450,7 +450,7 @@ def get_updater(api_client=None, version: str = None) -> Updater:
     
     if _updater is None:
         try:
-            from .version import VERSION
+            from ..version import VERSION
             v = version or VERSION
         except:
             v = version or "3.0.0"
