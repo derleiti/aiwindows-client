@@ -80,7 +80,7 @@ jobs:
           tmp=$(mktemp -d)
           dpkg-deb -x triforce-backend_2.85.0~beta1_amd64.deb "$tmp"
           test "$(readlink "$tmp/opt/triforce/runtime/bin/python3.14")" = /usr/bin/python3.14
-          PYTHONPATH="$tmp/opt/triforce" "$tmp/opt/triforce/runtime/bin/python" - <<'PY'
+          PYTHONPATH="$tmp/opt/triforce:$tmp/opt/triforce/runtime/lib/python3.14/site-packages" python3.14 - <<'PY'
           from app.config import VERSION
           from google import genai
           print('DEBIAN_ACTIONS_SMOKE_OK', VERSION, getattr(genai, '__version__', 'unknown'))
