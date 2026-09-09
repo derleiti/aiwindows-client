@@ -6,7 +6,7 @@ on:
       triforce_ref:
         description: 'TriForce commit/tag/branch to build'
         required: true
-        default: 'b3ea371faac60e430134262d23e7dc16292b2dbb'
+        default: 'd90c2df63e80daa9706116136c85844a9b630619'
       windows_version:
         description: 'Windows client artifact version'
         required: true
