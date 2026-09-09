@@ -35,6 +35,9 @@ jobs:
           pip check
       - name: Prepare TriStar runtime directory
         run: sudo install -d -o "$USER" -g "$(id -gn)" -m 0755 /var/tristar
+      - name: Prepare TriStar state directory
+        run: |
+          sudo install -d -o "$USER" -g "$(id -gn)" -m 0755 /var/tristar
       - name: Full TriForce suite
         env:
           PYTHONPATH: .
