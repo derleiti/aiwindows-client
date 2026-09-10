@@ -137,6 +137,17 @@ jobs:
             "installer": "AIWindows-Client-Setup-${VERSION}.exe"
           }
           EOF
+          cat > BUILD-METADATA.txt <<EOF
+          Product: AIWindows Client
+          Version: ${VERSION}
+          Platform: windows-x86_64
+          Repository: ${GITHUB_REPOSITORY}
+          Commit: ${GITHUB_SHA}
+          Runner OS: ${RUNNER_OS}
+          Python: $(python --version 2>&1)
+          Portable: AIWindows-Client-${VERSION}.exe
+          Installer: AIWindows-Client-Setup-${VERSION}.exe
+          EOF
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
@@ -148,4 +159,5 @@ jobs:
             dist/AIWindows-Client-Setup-${{ steps.version.outputs.version }}.exe
             dist/AIWindows-Client-latest.exe
             dist/version.json
+            dist/BUILD-METADATA.txt
             dist/SHA256SUMS-windows.txt
