@@ -88,7 +88,7 @@ jobs:
           rm -rf "$tmp"
       - uses: actions/upload-artifact@v7
         with:
-          name: triforce-debian-2.85-beta1
+          name: triforce-debian-2.85-beta2
           if-no-files-found: error
           path: ${{ runner.temp }}/triforce-linux/*
 
@@ -108,7 +108,7 @@ jobs:
           ref: ${{ inputs.triforce_ref }}
       - uses: actions/download-artifact@v7
         with:
-          name: triforce-debian-2.85-beta1
+          name: triforce-debian-2.85-beta2
           path: /tmp/debian
       - name: Build Arch package
         run: |
@@ -137,7 +137,7 @@ jobs:
           (cd /tmp/arch-artifacts && sha256sum *.pkg.tar.zst > SHA256SUMS-arch.txt)
       - uses: actions/upload-artifact@v7
         with:
-          name: triforce-arch-2.85-beta1
+          name: triforce-arch-2.85-beta2
           if-no-files-found: error
           path: /tmp/arch-artifacts/*
 
