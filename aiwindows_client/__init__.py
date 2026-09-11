@@ -13,5 +13,5 @@ AI-powered desktop client with:
 Designed for lean Linux with Ubuntu apt.
 """
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __author__ = "AILinux Team"

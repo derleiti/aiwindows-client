@@ -70,7 +70,7 @@ class ThemeMetadata:
     """Theme metadata"""
     name: str = "Default"
     author: str = "AILinux"
-    version: str = "1.0.0"
+    version: str = "1.0.1"
     description: str = "Default AILinux theme"
     created: str = ""
     tags: List[str] = field(default_factory=list)

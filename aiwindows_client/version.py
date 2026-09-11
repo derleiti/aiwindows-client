@@ -4,14 +4,14 @@ AIWindows Client Version
 Windows-Version des AILinux Desktop Clients
 """
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 BUILD_DATE = "20251217"
 PLATFORM = "windows"
 
 CHANGELOG = """
 # AIWindows Client Changelog
 
-## Version 1.0.0 (2025-12-17)
+## Version 1.0.1 (2026-09-11)
 
 ### Neu
 - Erste Windows-Version

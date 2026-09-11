@@ -2529,7 +2529,7 @@ CLI Agents: {len(self.cli_agents)}
             <li><b>Enterprise:</b> Alle Tools inkl. Remote-Execution</li>
         </ul>
 
-        <p><i>Version 1.0.0 - © 2024 AILinux</i></p>
+        <p><i>Version 1.0.1 - © 2024 AILinux</i></p>
         """
 
     def _show_license(self):
@@ -2603,7 +2603,7 @@ CLI Agents: {len(self.cli_agents)}
         QMessageBox.information(
             self,
             "Updates prüfen",
-            """<h3>AILinux Client v1.0.0</h3>
+            """<h3>AILinux Client v1.0.1</h3>
             <p>Sie verwenden die aktuelle Version.</p>
             <p>Updates werden automatisch über das AILinux Repository verteilt.</p>
             <p><a href="https://ailinux.me/updates">https://ailinux.me/updates</a></p>

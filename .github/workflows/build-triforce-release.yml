@@ -10,7 +10,7 @@ on:
       windows_version:
         description: 'Windows client artifact version'
         required: true
-        default: '1.0.0-beta1'
+        default: '1.0.1'
 
 permissions:
   contents: read

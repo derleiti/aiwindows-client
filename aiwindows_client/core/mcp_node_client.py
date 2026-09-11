@@ -241,7 +241,7 @@ class MCPNodeClient:
             "machine_id": self.machine_id,
             "user_id": user_id,
             "tier": tier,
-            "client_version": "1.0.0",
+            "client_version": "1.0.1",
             "mode": "telemetry",
         })
         ws_url = f"{self.ws_url}/v1/mcp/node/connect?{params}"
@@ -295,7 +295,7 @@ class MCPNodeClient:
                 "platform": platform.system(),
                 "hostname": platform.node(),
                 "python_version": platform.python_version(),
-                "client_version": "1.0.0",
+                "client_version": "1.0.1",
             "mode": "telemetry_only",
             }
         }
