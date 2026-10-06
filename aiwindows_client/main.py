@@ -175,6 +175,9 @@ def is_autostart_enabled() -> bool:
 
 def main():
     """Main entry point"""
+    from .bug_reporter import install as install_bug_reporter
+    from .version import VERSION
+    install_bug_reporter(app="AIWindows Client", repo="aiwindows-client", version=VERSION, channel="desktop")
     args = parse_args()
 
     # Handle --hwinfo command (no GUI needed)
