@@ -106,7 +106,7 @@ jobs:
         with:
           repository: derleiti/triforce-dev-mcp
           ref: ${{ inputs.triforce_ref }}
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: triforce-debian-2.85-beta2
           path: /tmp/debian
