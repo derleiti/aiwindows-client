@@ -2,7 +2,7 @@
 # Install via: pip install -r requirements.txt
 
 # GUI Framework
-PyQt6>=6.11.0
+PyQt6>=6.12.1
 PyQt6-WebEngine>=6.140.1
 
 # System monitoring
@@ -14,14 +14,14 @@ httpx>=0.28.1
 aiohttp==3.14.5
 
 # WebSocket for MCP Node
-websockets>=17.3
+websockets>=17.4
 
 # Data validation
-pydantic==2.14.3
+pydantic==2.14.4
 
 # Terminal emulation
 pyte>=0.8.2
-pywinpty>=3.1.0  # Windows ConPTY
+pywinpty>=3.1.2  # Windows ConPTY
 
 # Encryption for secure settings storage
 cryptography==50.0.2
