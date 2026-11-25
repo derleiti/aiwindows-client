@@ -21,7 +21,7 @@ pydantic==2.14.4
 
 # Terminal emulation
 pyte>=0.8.2
-pywinpty>=3.1.0  # Windows ConPTY
+pywinpty>=3.1.2  # Windows ConPTY
 
 # Encryption for secure settings storage
 cryptography==50.0.2
